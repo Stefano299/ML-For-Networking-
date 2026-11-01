@@ -1,0 +1,55 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# Large Datasets and Processed Data
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Model weights, checkpoints and serialized objects
+*.pt
+*.pth
+*.bin
+*.onnx
+*.pkl
+*.joblib
+results/models/*
+!results/models/.gitkeep
+
+# Output Figures and Evaluation Plots (optional: keep gitkeep)
+results/plots/*
+!results/plots/.gitkeep
+
+# Sensitive credentials & API keys
+kaggle.json
+*.env
+.env.*
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Operating System and Office temporary files
+.DS_Store
+Thumbs.db
+.~lock.*#
+*.tmp
