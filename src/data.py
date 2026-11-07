@@ -19,9 +19,27 @@ SERVICE_PORTS = [80, 443, 3128]
 # - 80 (HTTP): 18.61%
 # All remaining destination ports are grouped into 'Other'.
 
+# Features that the EDA (Section 1.3) found to be copies of other features.
+# They are still in model_ready.csv, load_model_ready() removes them
+REDUNDANT_FEATURES = [
+    "Avg.Fwd.Segment.Size",    # = Fwd.Packet.Length.Mean (up to float rounding)
+    "Avg.Bwd.Segment.Size",    # = Bwd.Packet.Length.Mean (up to float rounding)
+    "Packet.Length.Variance",  # = Packet.Length.Std^2
+]
+
 
 def load_dataset(path="data/processed/dataset_10apps.csv"):
     return pd.read_csv(path, low_memory=False)
+
+
+def load_model_ready(path="data/processed/model_ready.csv", groups_path="data/processed/groups.csv"):
+    # Loads X, y and groups saved by the preprocessing, without the redundant features.
+    # This is used for section 2-4
+    data = pd.read_csv(path)
+    y = data["label"]
+    X = data.drop(columns=["label"] + REDUNDANT_FEATURES)
+    groups = pd.read_csv(groups_path)["Flow.ID"]
+    return X, y, groups
 
 
 def filter_10_apps(df):

@@ -7,14 +7,6 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import mutual_info_score
 from sklearn.model_selection import train_test_split
 
-# Features that the EDA (Section 1.3) found to be exact copies of other features, up to float rounding
-# They are dropped after loading model_ready.csv, so every notebook uses the same feature set
-REDUNDANT_FEATURES = [
-    "Avg.Fwd.Segment.Size",    # = Fwd.Packet.Length.Mean
-    "Avg.Bwd.Segment.Size",    # = Bwd.Packet.Length.Mean
-    "Packet.Length.Variance",  # = Packet.Length.Std^2
-]
-
 
 def feature_label(feature):
     # Axis label with the unit of measurement, deduced from the CICFlowMeter feature name
