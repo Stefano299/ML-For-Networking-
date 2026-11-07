@@ -11,7 +11,7 @@ This directory contains all documentation and guidelines for **Group Project 4: 
 
 | Project Section | Planned Notebook | Target Module in `src/` |
 | :--- | :--- | :--- |
-| **Section 1: Data Acquisition, Filtering & EDA** | `notebooks/01_eda.ipynb` | `src/data.py` |
+| **Section 1: Data Acquisition, Filtering & EDA** | `notebooks/01_eda.ipynb` | `src/data.py`, `src/eda.py` |
 | **Section 2: Supervised Classifiers & PyTorch MLP** | `notebooks/02_models.ipynb` | `src/models.py`, `src/evaluation.py` |
 | **Section 3: Adversarial Attacks (FGSM, PGD, ART)** | `notebooks/03_adversarial.ipynb` | `src/attacks.py`, `src/evaluation.py` |
 | **Section 4: Backdoor Poisoning & Clustering Defense** | `notebooks/04_backdoor.ipynb` | `src/attacks.py` |

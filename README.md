@@ -99,7 +99,8 @@ This will automatically populate `data/processed/` with:
 │   └── plots/                     # Generated figures, confusion matrices, and ROC curves
 └── src/                           # Reusable Python source package
     ├── __init__.py
-    └── data.py                    # Dataset loading, filtering, and preprocessing pipeline
+    ├── data.py                    # Dataset loading, filtering, and preprocessing pipeline
+    └── eda.py                     # EDA helpers: summary stats, univariate AUC, mutual information, correlation groups, redundant features
 ```
 
 ---

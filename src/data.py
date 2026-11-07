@@ -1,6 +1,9 @@
+import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.preprocessing import MinMaxScaler
 
 # The 10 target applications requested by the project
 APPS = [
@@ -50,6 +53,57 @@ def get_duplicate_columns(df):
     return duplicates
 
 
+def drop_duplicate_rows(df):
+    # Removes rows identical in every column (same Flow.ID and Timestamp too)
+    return df.drop_duplicates().reset_index(drop=True)
+
+
+def fix_init_win_sentinel(X):
+    # CICFlowMeter writes -1 when the initial TCP window cannot be observed.
+    # Forward: -1 only for UDP flows, replaced with 0.
+    # Backward: -1 when the server never sent packets (or UDP). 0 is also a real window value,
+    # so we add a flag not to lose information
+    X = X.copy()
+    X["Init_Win_bytes_backward_missing"] = (X["Init_Win_bytes_backward"] == -1).astype(int)
+    X["Init_Win_bytes_forward"] = X["Init_Win_bytes_forward"].replace(-1, 0)
+    X["Init_Win_bytes_backward"] = X["Init_Win_bytes_backward"].replace(-1, 0)
+    return X
+
+
+def split_by_flow(X, y, groups, test_size=0.2, seed=42):
+    # Train/test split stratified on the app label and grouped by Flow.ID:
+    # all the rows of the same flow end up on the same side.
+    # StratifiedGroupKFold with 1/test_size folds, the first fold is used as test set.
+    sgkf = StratifiedGroupKFold(n_splits=round(1 / test_size), shuffle=True, random_state=seed)
+    train_idx, test_idx = next(sgkf.split(X, y, groups))
+    return (X.iloc[train_idx], X.iloc[test_idx],
+            y.iloc[train_idx], y.iloc[test_idx],
+            groups.iloc[train_idx], groups.iloc[test_idx])
+
+
+def get_continuous_columns(X):
+    # Function that returns continuoos (not 0/1) features
+    is_binary = X.isin([0, 1]).all()
+    return is_binary[~is_binary].index.tolist()
+
+
+def scale_features(X_train, X_test):
+
+    # Applies log1p on the continuous features, because there are some (few) feature with very large numbers
+    # Then apply MinMaxScaler to [0, 1], fitted on the training set only
+
+    cont_cols = get_continuous_columns(X_train)
+    X_train = X_train.astype(float)
+    X_test = X_test.astype(float)
+    X_train[cont_cols] = np.log1p(X_train[cont_cols])
+    X_test[cont_cols] = np.log1p(X_test[cont_cols])
+
+    scaler = MinMaxScaler(feature_range=(0, 1), clip=True)  # clip=True for ART in section 3
+    X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+    X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+    return X_train_scaled, X_test_scaled, scaler
+
+
 def make_ovr_target(y, app):
     if app not in APPS:
         raise ValueError(f"App {app} not valid, it must be in APPS")
@@ -59,17 +113,17 @@ def make_ovr_target(y, app):
 def prepare_dataset_for_model(df):
     """
     Prepares the dataset for model training:
+    - Removes rows identical in every column
     - Preserves groups = df["Flow.ID"].copy() for StratifiedGroupKFold
     - Removes identifiers: Flow.ID, Source.IP, Destination.IP, Timestamp, Source.Port
     - Separates target label (y = ProtocolName) and removes L7Protocol from features
     - Removes constant columns (only 1 unique value)
     - Removes duplicate columns (identical values)
-    - Applies One-Hot Encoding to Protocol and Destination.Port (using SERVICE_PORTS + 'Other')
-
-    Returns:
-        (X, y, groups): tuple of DataFrames/Series aligned row-by-row
+    - Replaces the -1 sentinel in Init_Win_bytes_* (+ flag for the backward direction)
+    - Encodes Protocol as a single 0/1 column (Protocol_17 = UDP)
+    - Applies One-Hot Encoding to Destination.Port (using SERVICE_PORTS + 'Other')
     """
-    df = df.copy()
+    df = drop_duplicate_rows(df)
 
     # We preserve the groups for the split
     groups = df["Flow.ID"].copy()
@@ -90,14 +144,18 @@ def prepare_dataset_for_model(df):
     dup_cols = get_duplicate_columns(X)
     X = X.drop(columns=dup_cols)
 
-    # One-Hot Encoding for Protocol (6=TCP, 17=UDP)
-    X["Protocol"] = X["Protocol"].astype(str)
+    # We replace the -1 sentinel of the TCP initial window
+    X = fix_init_win_sentinel(X)
+
+    # Protocol has only two values (6=TCP, 17=UDP), so a single 0/1 column is enough
+    X["Protocol_17"] = (X["Protocol"] == 17).astype(int)
+    X = X.drop(columns=["Protocol"])
 
     # One-Hot Encoding for Destination.Port (known service ports + 'Other')
     X["Destination.Port"] = X["Destination.Port"].where(X["Destination.Port"].isin(SERVICE_PORTS), other="Other")
     X["Destination.Port"] = X["Destination.Port"].astype(str)
 
-    X = pd.get_dummies(X, columns=["Protocol", "Destination.Port"], dtype=int)
+    X = pd.get_dummies(X, columns=["Destination.Port"], dtype=int)
 
     return X, y, groups
 
@@ -108,7 +166,7 @@ if __name__ == "__main__":
         raw_path = Path("data/raw/dataset.csv")
         if not raw_path.exists():
             print("Error: data/raw/dataset.csv not found. Please place it in data/raw/ first!")
-            exit(1)
+            sys.exit(1)
         print("Saving the new csv....")
         df_raw = pd.read_csv("data/raw/dataset.csv", low_memory=False) #Low_memory=False to avoid warnings
         df_10apps = filter_10_apps(df_raw)

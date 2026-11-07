@@ -45,3 +45,5 @@ In Section 1.2 of the Project 4 specification PDF, the text reads:
 
 ### Clarification:
 > *Can you confirm that the expected normalization range is standard $[0, 1]$ via `MinMaxScaler` (fitted strictly on the training set)?*
+### Altra cosa da chiedere
+Init_Win_bytes_backward è la feature più informativa per separare le app nel dataset attuale: i suoi valori dipendono dallo stack TCP di chi risponde (server, o proxy Squid sulla porta 3128) e dallo stato della connessione; tuttavia, in un ambiente di produzione reale rappresenta un rischio di shortcut learning (concept drift), poiché un semplice cambio di configurazione dei server o del proxy degraderebbe le prestazioni del classificatore.
