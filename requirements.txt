@@ -1,6 +1,7 @@
 # Numeric and Tabular Data Analysis
 numpy>=1.22.0,<2.0.0
 pandas>=2.0.0
+scipy>=1.10.0
 
 # Visualization
 matplotlib>=3.5.0
