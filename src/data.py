@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import pandas as pd
 import numpy as np
+from sklearn.base import BaseEstimator, OneToOneFeatureMixin, TransformerMixin
 from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.preprocessing import MinMaxScaler
 
@@ -105,21 +106,50 @@ def get_continuous_columns(X):
     return is_binary[~is_binary].index.tolist()
 
 
+class LogMinMaxScaler(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
+    # Our normalization as a scikit-learn transformer, so it can go inside a Pipeline and be fitted
+    # again in every cross-validation fold (only on the training part of the fold):
+    # 1. log1p on the continuous features (the 0/1 columns are left as they are),
+    #    because some features have very large values
+    # 2. Min-Max to [0, 1], clip=True so values outside the training range stay in [0, 1] (needed by ART)
+
+    def fit(self, X, y=None):
+        if hasattr(X, "columns"):
+            self.feature_names_in_ = np.asarray(X.columns, dtype=object)  # for get_feature_names_out
+        X = np.asarray(X, dtype=float)
+        self.n_features_in_ = X.shape[1]
+        # continuous = not only 0/1 values in the data used for the fit
+        self.continuous_ = ~np.isin(X, [0, 1]).all(axis=0)
+        self.minmax_ = MinMaxScaler(feature_range=(0, 1), clip=True).fit(self._log(X))
+        return self
+
+    def transform(self, X):
+        return self.minmax_.transform(self._log(np.asarray(X, dtype=float)))
+
+    def _log(self, X):
+        X = X.copy()
+        X[:, self.continuous_] = np.log1p(X[:, self.continuous_])
+        return X
+
+
 def scale_features(X_train, X_test):
-
-    # Applies log1p on the continuous features, because there are some (few) feature with very large numbers
-    # Then apply MinMaxScaler to [0, 1], fitted on the training set only
-
-    cont_cols = get_continuous_columns(X_train)
-    X_train = X_train.astype(float)
-    X_test = X_test.astype(float)
-    X_train[cont_cols] = np.log1p(X_train[cont_cols])
-    X_test[cont_cols] = np.log1p(X_test[cont_cols])
-
-    scaler = MinMaxScaler(feature_range=(0, 1), clip=True)  # clip=True for ART in section 3
-    X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+    # LogMinMaxScaler fitted on X_train and applied to both, with the results as DataFrames.
+    # Returns the inner MinMaxScaler (data_range_ etc. refer to the log1p values).
+    scaler = LogMinMaxScaler().fit(X_train)
+    X_train_scaled = pd.DataFrame(scaler.transform(X_train), columns=X_train.columns, index=X_train.index)
     X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
-    return X_train_scaled, X_test_scaled, scaler
+    return X_train_scaled, X_test_scaled, scaler.minmax_
+
+
+def load_train_test(test_size=0.2, seed=42):
+    # Same split for everyone in Section 2-4: load model_ready.csv and split by Flow.ID (80/20).
+    # X is NOT scaled here: in cross-validation the scaler must be fitted only on the training part of
+    # each fold, so it goes inside the model (Pipeline with LogMinMaxScaler, see src/evaluation.py).
+    # For the final model (and Section 3-4) fit LogMinMaxScaler on the whole X_train.
+    # y_train / y_test are the app names: use make_ovr_target(y_train, app) to get the 0/1 label.
+    X, y, groups = load_model_ready()
+    X_train, X_test, y_train, y_test, groups_train, groups_test = split_by_flow(X, y, groups, test_size, seed)
+    return X_train, X_test, y_train, y_test, groups_train
 
 
 def make_ovr_target(y, app):

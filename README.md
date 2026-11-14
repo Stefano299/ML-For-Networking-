@@ -100,6 +100,7 @@ This will automatically populate `data/processed/` with:
 └── src/                           # Reusable Python source package
     ├── __init__.py
     ├── data.py                    # Dataset loading, filtering, and preprocessing pipeline
+    ├── evaluation.py              # Section 2 shared rules: per-fold scaling, CV folds, metric, test metrics, results CSV
     └── eda.py                     # EDA helpers: summary stats, univariate AUC, mutual information, correlation groups, redundant features
 ```
 
