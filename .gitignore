@@ -31,6 +31,7 @@ data/processed/*
 *.joblib
 results/models/*
 !results/models/.gitkeep
+!results/models/mlp_*
 
 # Output Figures and Evaluation Plots (optional: keep gitkeep)
 results/plots/*
