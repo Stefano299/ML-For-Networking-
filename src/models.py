@@ -159,7 +159,7 @@ def save_mlp(model, scaler, prefix):
     # Saves everything needed to reuse the detector in Sections 3-4, with the given prefix:
     #   <prefix>.pt             weights (state_dict)
     #   <prefix>.json           architecture (n_features, hidden), to rebuild the same MLP
-    #   <prefix>_scaler.joblib  the LogMinMaxScaler fitted on the whole training set
+    #   <prefix>_scaler.joblib  the LogMinMaxScaler the model was trained with (fitted on the rows used for training)
     prefix = Path(prefix)
     prefix.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), prefix.with_suffix(".pt"))

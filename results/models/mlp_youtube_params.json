@@ -1,0 +1,14 @@
+{
+ "hidden": [
+  128,
+  64
+ ],
+ "lr": 0.003,
+ "class_weight": null,
+ "batch_size": 512,
+ "max_epochs": 100,
+ "patience": 5,
+ "best_epoch": 39,
+ "cv_f1_mean": 0.8183276764077355,
+ "cv_f1_std": 0.0065230620058511
+}
