@@ -19,7 +19,9 @@
 ## Open points for the group
 
 1. **Group's app.** Group AD: should be **YOUTUBE**.
-   To be confirmed with the tutor (Franco Galante) before Section 3 starts.
+   The PDF says to number the apps 0–9 in the order of its list and take the group number modulo 10 ("Group A → 1").
+   Counting two-letter groups like spreadsheet columns, AD = 30 and 30 mod 10 = 0, the first app of the list. The
+   two-letter numbering is our assumption: to be confirmed with the tutor (Franco Galante) before Section 3 starts.
 2. **2 logits + `CrossEntropyLoss` instead of 1 logit + `BCEWithLogitsLoss`.** The template in `SECTION2_RULES.md`
    says "BCE loss, `pos_weight`"; `PROJECT_WORKFLOW_GUIDE.md` says "2 logits, `CrossEntropyLoss` with class weights,
    `nb_classes=2`". I followed the second, for these reasons:
@@ -42,20 +44,26 @@
    `BCEWithLogitsLoss`" → "`weight` of `CrossEntropyLoss`". If the group prefers the 1-logit form, it is a few lines
    in `train_mlp` / `predict_proba`.
 
-3. **`class_weight` of the YOUTUBE model: a tie.** At `lr=3e-3` the unweighted model has validation F1
-   0.818 ± 0.007 and the `balanced` one 0.817 ± 0.007. The rule (highest validation F1) picks the unweighted one,
-   which is the saved model: precision 0.84, recall 0.80 on the test set. The `balanced` variant has the same F1
-   with the opposite trade-off (precision 0.75, recall 0.91). If Sections 3–4 prefer the recall-oriented detector
-   it is one training of ~30 s (see "Retrain from Python" with `class_weight="balanced"`); the choice must not be
-   made by comparing the two test F1.
-4. **Scaler of the saved model.** `SECTION2_RULES.md` says "the `LogMinMaxScaler` fitted on the whole `X_train`";
-   the saved scaler is fitted on the 90% used for training (363,491 flows), not on the 10% early-stopping set, so
-   the model is used with exactly the scaler it was trained with and the protocol is the same as inside the CV
-   folds. With `clip=True` the outputs stay in [0, 1] in both cases. Easy to change if the group prefers the
-   literal rule.
-5. ~~`.gitignore` excluded the saved model~~ — solved: `.gitignore` now has the exception `!results/models/mlp_*`, so
-   `results/models/mlp_youtube.{pt,json}`, `mlp_youtube_scaler.joblib` and `mlp_youtube_params.json` (~80 KB in
-   total) are committed and Sections 3–4 get them with a `git pull`.
+## Decisions the group should know
+
+Already taken and motivated, no answer needed; listed here because they touch the shared rules or Sections 3–4.
+
+- **`class_weight` of the YOUTUBE model: a tie, the unweighted model is saved.** At `lr=3e-3` the unweighted model
+  has validation F1 0.818 ± 0.007 and the `balanced` one 0.817 ± 0.007. The rule (highest validation F1) picks the
+  unweighted one: precision 0.84, recall 0.80 on the test set. The project PDF only asks that the detector "actually
+  detects" the app, "e.g., a recall well above 0", so the requirement of Section 3 is met. The `balanced` variant
+  has the same validation F1 with the opposite trade-off (precision 0.75, recall 0.91). To switch: one training of
+  ~30 s, no cross-validation (see "Retrain from Python" with `class_weight="balanced"`). The choice must not be made
+  by comparing the two test F1.
+- **Scaler of the saved model: fitted on the training rows only.** `SECTION2_RULES.md` says in one place "the
+  `LogMinMaxScaler` fitted on the whole `X_train`" and in another "do the same split (`group_sample` on the whole
+  `X_train`) for the final model". We follow the second: the saved scaler is fitted on the 90% used for training
+  (363,491 flows), not on the 10% early-stopping set, so the model is used with exactly the scaler it was trained
+  with and the protocol is the same as inside the CV folds. With `clip=True` the outputs stay in [0, 1] in both
+  cases. To switch: one line in 2.3 and one training.
+- **The saved model is in git.** `.gitignore` has the exception `!results/models/mlp_*`, so
+  `results/models/mlp_youtube.{pt,json}`, `mlp_youtube_scaler.joblib` and `mlp_youtube_params.json` (~80 KB in
+  total) are committed and Sections 3–4 get them with a `git pull`.
 
 ## How it works (overview)
 
@@ -180,7 +188,7 @@ Plots: `results/plots/mlp_youtube_grid_heatmap.png` (the 8 grid configurations: 
   in Sections 3–4 and smaller is simpler to reason about.
 - **`balanced` makes no difference on YOUTUBE with the chosen network**: 0.818 unweighted vs 0.817 balanced at
   `3e-3`, 0.810 vs 0.811 at `1e-3`, all well inside one std. It helped only the small network (+0.01 for (64, 32)).
-  The highest validation F1 is the unweighted row, so that is the final configuration (see open point 3).
+  The highest validation F1 is the unweighted row, so that is the final configuration (see "Decisions the group should know").
 - **No overfitting:** training F1 is within 0.01 of validation F1 in every configuration, so early stopping on a
   held-out 10% does its job and more regularization (dropout, weight decay) was not needed.
 
@@ -358,3 +366,5 @@ to grow, after a single-training check on YOUTUBE that `batch_size=4096` keeps t
 - 2026-11-16 — `02a_mlp.ipynb` 2.2: table of the validation F1 without / with `balanced` for the 10 apps at their
   best learning rate (from the cache). Notebook rerun from the top with the cache: same `mlp.csv`, same final model
   (best epoch 39, test F1 0.815).
+- 2026-11-16 — notes: "Open points" keeps only what waits for an answer (app, 2 logits + `CrossEntropyLoss`); the
+  class-weight tie, the scaler and the `.gitignore` exception moved to "Decisions the group should know".
