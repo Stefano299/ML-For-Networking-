@@ -146,6 +146,10 @@ input (64 features in [0, 1]) → Linear(64, h1) → ReLU → Linear(h1, h2) →
   depend on the app or on the configuration, so they are computed once per fold and kept in memory (`get_fold_data`).
 - **Grid on YOUTUBE**: `hidden ∈ {(64, 32), (128, 64)}` × `lr ∈ {1e-3, 1e-4}` × `class_weight ∈ {None, balanced}`
   (8 configs), then a **validation curve** on `lr ∈ {1e-4, 3e-4, 1e-3, 3e-3}` around the best one. Fixed: `batch_size=512`, `max_epochs=100`, `patience=5` (epochs chosen by early stopping).
+- **Optimizer and batch size are fixed, not searched.** Adam adapts the step of every weight, so it needs less
+  tuning than plain SGD, and its learning rate is searched. Batch size and learning rate act together (bigger batch,
+  fewer updates per epoch, usually a larger lr), so the batch is fixed at a standard 512 (~570 updates per epoch)
+  and only the lr is tuned. A bigger batch would also be faster, see "Where the CV time goes".
 - **All 10 apps**: `hidden` of the YOUTUBE best; `lr ∈ {1e-3, 3e-3}` (the best of the grid and the best of the
   curve) × `class_weight ∈ {None, balanced}`, 4 configs per app, the best one kept. For YOUTUBE this adds the one
   combination the grid and the curve had not covered (`3e-3`, unweighted). Full tuning per app would cost ~10× more
@@ -183,7 +187,9 @@ Plots: `results/plots/mlp_youtube_grid_heatmap.png` (the 8 grid configurations: 
 
 - **Learning rate matters most.** `1e-4` is too small: (64, 32) runs to the 100-epoch cap, (128, 64) stops after
   76–87 epochs, and both give the worst F1 at twice the cost. The validation curve is monotone up to `3e-3`, the largest
-  value tried; the gain from `1e-3` to `3e-3` is within one std, so we did not go further.
+  value tried; the gain from `1e-3` to `3e-3` is within one std, so we did not go further. At `1e-4` training and
+  validation F1 are both low and close: underfitting from a training that is too slow to converge, not from a model
+  that is too small.
 - **Bigger network helps a little** (+0.01–0.02 F1 from (64, 32) to (128, 64) at the same learning rate). We stopped there: the model is attacked
   in Sections 3–4 and smaller is simpler to reason about.
 - **`balanced` makes no difference on YOUTUBE with the chosen network**: 0.818 unweighted vs 0.817 balanced at
@@ -368,3 +374,5 @@ to grow, after a single-training check on YOUTUBE that `batch_size=4096` keeps t
   (best epoch 39, test F1 0.815).
 - 2026-11-16 — notes: "Open points" keeps only what waits for an answer (app, 2 logits + `CrossEntropyLoss`); the
   class-weight tie, the scaler and the `.gitignore` exception moved to "Decisions the group should know".
+- 2026-11-17 — `02a_mlp.ipynb` 2.2 and these notes: why optimizer and batch size are fixed, and the
+  underfitting at small learning rates on the validation curve (Section 2 checklist). Text only, no rerun.
