@@ -159,6 +159,31 @@ input (64 features in [0, 1]) → Linear(64, h1) → ReLU → Linear(h1, h2) →
   mean best epoch and times, see "Cache" below); the best per app goes to `results/section2/mlp.csv` via
   `save_cv_result`, the format shared with the other classifiers.
 
+### Hyperparameters searched
+
+| Hyperparameter                 | Values tried                   | Searched on                                          |
+| ------------------------------ | ------------------------------ | ---------------------------------------------------- |
+| `hidden` (hidden layer sizes)  | (64, 32), (128, 64)            | YOUTUBE only; the other apps use (128, 64)           |
+| `lr` (Adam learning rate)      | 1e-4, 3e-4, 1e-3, 3e-3         | all 4 on YOUTUBE; 1e-3 and 3e-3 on the other 9 apps   |
+| `class_weight`                 | None, balanced                 | every app                                            |
+
+Fixed for every configuration: optimizer Adam, `batch_size=512`, `max_epochs=100`, `patience=5`, `SEED=42`.
+
+### Configurations run (5-fold CV each)
+
+| Where                                    | Configurations                                                        | Count  |
+| ---------------------------------------- | --------------------------------------------------------------------- | ------ |
+| YOUTUBE, grid                            | `hidden` {(64, 32), (128, 64)} × `lr` {1e-4, 1e-3} × `class_weight`   | 8      |
+| YOUTUBE, validation curve on `lr`        | (128, 64), balanced, `lr` 3e-4 and 3e-3 (1e-4 and 1e-3 from the grid) | 2      |
+| YOUTUBE, search of the 10 apps           | (128, 64), `lr` 3e-3, unweighted                                      | 1      |
+| each of the other 9 apps                 | (128, 64) × `lr` {1e-3, 3e-3} × `class_weight`                         | 4 × 9  |
+| **Total** (rows of `mlp_grid.csv`)       |                                                                       | **47** |
+
+YOUTUBE has 11 configurations: all 8 combinations of the grid plus 3 more with (128, 64). The grid heatmap in the
+notebook shows the 8 grid configurations only (hidden × lr, best `class_weight` per cell); the other learning
+rates are on the validation curve. The scores of the YOUTUBE configurations are in the table under "Results";
+the scores of all 47 are in `mlp_grid.csv`.
+
 ## Results
 
 ### Before tuning (v0, `02a_mlp.ipynb` 2.1)
@@ -376,3 +401,4 @@ to grow, after a single-training check on YOUTUBE that `batch_size=4096` keeps t
   class-weight tie, the scaler and the `.gitignore` exception moved to "Decisions the group should know".
 - 2026-11-17 — `02a_mlp.ipynb` 2.2 and these notes: why optimizer and batch size are fixed, and the
   underfitting at small learning rates on the validation curve (Section 2 checklist). Text only, no rerun.
+- 2026-11-19 — notes: tables of the hyperparameters searched and of the 47 configurations run.
