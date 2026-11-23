@@ -1,0 +1,11 @@
+model,app,cv_f1_mean,cv_f1_std,fit_time_s,predict_time_s,best_params,notes
+decision_tree,YOUTUBE,0.872862540198952,0.0016377637233564,22.60248680114746,0.2185160636901855,"{""model__class_weight"": ""balanced"", ""model__max_depth"": 20, ""model__min_samples_leaf"": 1}",
+decision_tree,AMAZON,0.8589779156610671,0.0041696934712627,20.79007768630981,0.2091188430786132,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,GMAIL,0.6846883854498688,0.0036529331127492,19.700656175613403,0.2247411727905273,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,WINDOWS_UPDATE,0.8989244249804804,0.0010710864412585,25.80104293823242,0.2197620391845703,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,MICROSOFT,0.7466726765155782,0.0029787474734081,20.67391576766968,0.2226855278015136,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,FACEBOOK,0.920381393156017,0.0028427184615759,23.25104684829712,0.1897985458374023,"{""model__class_weight"": null, ""model__max_depth"": 20, ""model__min_samples_leaf"": 10}",
+decision_tree,DROPBOX,0.8790920664938447,0.0047178817303529,26.3468035697937,0.197984504699707,"{""model__class_weight"": null, ""model__max_depth"": 20, ""model__min_samples_leaf"": 1}",
+decision_tree,SKYPE,0.6767852387335639,0.0058487172765339,20.857298612594604,0.1959391593933105,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,TWITTER,0.527677354840112,0.0056056288786317,19.865348434448244,0.2069609642028808,"{""model__class_weight"": null, ""model__max_depth"": null, ""model__min_samples_leaf"": 10}",
+decision_tree,CLOUDFLARE,0.7656836978037878,0.010934864706842438,16.46075310707092,0.2097501277923584,"{""model__class_weight"": null, ""model__max_depth"": 20, ""model__min_samples_leaf"": 1}",

@@ -1,0 +1,11 @@
+model,app,cv_f1_mean,cv_f1_std,fit_time_s,predict_time_s,best_params,notes
+random_forest,YOUTUBE,0.8796909404376592,0.0017127388402933,65.40346145629883,1.2320319175720216,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,AMAZON,0.8634767420158154,0.0024353285351347,63.56057262420654,1.0918025493621826,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,GMAIL,0.6729465421341787,0.0025598433109962,59.12973532676697,1.1645397186279296,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,WINDOWS_UPDATE,0.8907127144552209,0.0025844776775913,64.8174762248993,0.8402067661285401,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,MICROSOFT,0.7113639819531279,0.0042984338508575,62.63415913581848,1.157855463027954,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,FACEBOOK,0.9141448167845084,0.0033377178386522,65.72837519645691,0.7492592334747314,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,DROPBOX,0.8819598804437254,0.0090102855197641,83.23529295921325,0.7409963607788086,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,SKYPE,0.6391774924692386,0.0081058872220207,67.90186619758606,1.0061880111694337,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,TWITTER,0.4150372368929441,0.0095390117734086,55.889712285995486,0.7331214427947998,"{""model__class_weight"": ""balanced_subsample"", ""model__max_depth"": 20}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
+random_forest,CLOUDFLARE,0.7406507138920193,0.006767777002711677,48.67937159538269,0.6443275451660156,"{""model__class_weight"": null, ""model__max_depth"": null}","extra: n_estimators=100, max_features=sqrt, max_samples=0.3"
