@@ -18,16 +18,12 @@
 
 ## Open points for the group
 
-1. **Group's app.** Group AD: should be **YOUTUBE**.
-   The PDF says to number the apps 0–9 in the order of its list and take the group number modulo 10 ("Group A → 1").
-   Counting two-letter groups like spreadsheet columns, AD = 30 and 30 mod 10 = 0, the first app of the list. The
-   two-letter numbering is our assumption: to be confirmed with the tutor (Franco Galante) before Section 3 starts.
-2. **2 logits + `CrossEntropyLoss` instead of 1 logit + `BCEWithLogitsLoss`.** The template in `SECTION2_RULES.md`
+1. **2 logits + `CrossEntropyLoss` instead of 1 logit + `BCEWithLogitsLoss`.** The template in `SECTION2_RULES.md`
    says "BCE loss, `pos_weight`"; `PROJECT_WORKFLOW_GUIDE.md` says "2 logits, `CrossEntropyLoss` with class weights,
    `nb_classes=2`". I followed the second, for these reasons:
    - **It is the same model.** With two output scores $z_0, z_1$, the softmax probability of class 1 is
-     $\frac{e^{z_1}}{e^{z_0} + e^{z_1}} = \sigma(z_1 - z_0)$: the sigmoid of a single logit $h = z_1 - z_0$, i.e.
-     the logistic regression of Lecture 06 / Lab 5. Same predictions, same metrics; only 33 redundant parameters
+     $\frac{e^{z_1}}{e^{z_0} + e^{z_1}} = \sigma(z_1 - z_0)$ (softmax: Lecture 10): the sigmoid of a single logit
+     $h = z_1 - z_0$, i.e. the logistic regression of Lecture 06 / Lab 5. Same predictions, same metrics; only 33 redundant parameters
      more (6,306 vs 6,273 for `hidden=(64, 32)`).
    - **Same handling of the imbalance.** `pos_weight` of BCE multiplies the loss of the positives;
      `CrossEntropyLoss(weight=[w_0, w_1])` does the same with $w_0 = 1$, $w_1 =$ `pos_weight`. We use the
@@ -48,6 +44,10 @@
 
 Already taken and motivated, no answer needed; listed here because they touch the shared rules or Sections 3–4.
 
+- **Group's app: free choice, currently YOUTUBE.** We derived YOUTUBE from the PDF rule (group number modulo 10,
+  counting AD = 30, so app 0 of the list). On 2026-11-24 the professor said the choice of the app is free (see
+  `tutor_clarifications_2026-11-24.md`), so it can still be changed. Changing it means rerunning the notebook with
+  another `APP`: the grid on the new app and the final model.
 - **`class_weight` of the YOUTUBE model: a tie, the unweighted model is saved.** At `lr=3e-3` the unweighted model
   has validation F1 0.818 ± 0.007 and the `balanced` one 0.817 ± 0.007. The rule (highest validation F1) picks the
   unweighted one: precision 0.84, recall 0.80 on the test set. The project PDF only asks that the detector "actually
@@ -100,7 +100,8 @@ input (64 features in [0, 1]) → Linear(64, h1) → ReLU → Linear(h1, h2) →
   regression on 64 features).
 - **Why these sizes.** The usual starting point for tabular data: a first layer of the size of the input (64) or
   twice it (128), then a narrower one, so the network is forced to compress the 64 features towards the 2 logits;
-  two hidden layers are enough (one already gives a universal approximator, Lecture 08). With ~360k training flows
+  two hidden layers are enough (in theory one hidden layer can already approximate any continuous function, the
+  universal approximation theorem; not covered in the lectures). With ~360k training flows
   there are 20–60 examples per weight, so neither size can memorize the training set (train F1 ≈ val F1). We did not
   try bigger or deeper nets: the step (64, 32) → (128, 64) gives only +0.01 F1, and a small model is faster to
   retrain many times in Sections 3–4.
@@ -215,7 +216,7 @@ Plots: `results/plots/mlp_youtube_grid_heatmap.png` (the 8 grid configurations: 
   value tried; the gain from `1e-3` to `3e-3` is within one std, so we did not go further. At `1e-4` training and
   validation F1 are both low and close: underfitting from a training that is too slow to converge, not from a model
   that is too small.
-- **Bigger network helps a little** (+0.01–0.02 F1 from (64, 32) to (128, 64) at the same learning rate). We stopped there: the model is attacked
+- **Bigger network helps a little** (+0.007 to +0.019 F1 from (64, 32) to (128, 64) at the same learning rate and class weight). We stopped there: the model is attacked
   in Sections 3–4 and smaller is simpler to reason about.
 - **`balanced` makes no difference on YOUTUBE with the chosen network**: 0.818 unweighted vs 0.817 balanced at
   `3e-3`, 0.810 vs 0.811 at `1e-3`, all well inside one std. It helped only the small network (+0.01 for (64, 32)).
@@ -402,3 +403,5 @@ to grow, after a single-training check on YOUTUBE that `batch_size=4096` keeps t
 - 2026-11-17 — `02a_mlp.ipynb` 2.2 and these notes: why optimizer and batch size are fixed, and the
   underfitting at small learning rates on the validation curve (Section 2 checklist). Text only, no rerun.
 - 2026-11-19 — notes: tables of the hyperparameters searched and of the 47 configurations run.
+- 2026-11-24 — notes: the group's app is no longer an open point (the professor said the choice is free);
+  lecture references checked against the lecture notes (universal approximation is not in the lectures).
